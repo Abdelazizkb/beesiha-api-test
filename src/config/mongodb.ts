@@ -10,7 +10,6 @@ const connectDb = async () => {
       console.log("Database connection established!!");
     });
   } catch (err: any) {
-    console.log(err.message);
     setTimeout(connectDb, 5000);
   }
 };

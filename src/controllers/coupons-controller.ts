@@ -1,28 +1,27 @@
 import { NextFunction, Request, Response } from "express";
 import catchAsyncError from "../middlewares/catch-async-error";
-import Product from "../models/product";
 import ErrorHandler from "../utils/error-handler";
+import { couponServices } from "../services";
 
 export const getCoupons = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const product = await Product.findById(req.params.productId);
+      const data = await couponServices.getCoupons(req.params.productId);
+      res.status(200).json({ success: true, data });
+    } catch (error: any) {
+      next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
 
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-
-      if (req.params.couponId) {
-        const coupon = product.coupons.find(
-          (c) => c._id?.toString() === req.params.couponId
-        );
-        if (!coupon) {
-          return res.status(404).json({ error: "Coupon not found" });
-        }
-        return res.status(204).json({ success: true, data: coupon });
-      } else {
-        res.status(204).json({ success: true, data: product.coupons });
-      }
+export const getCoupon = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const data = await couponServices.getCoupon(
+        req.params.productId,
+        req.params.couponId
+      );
+      res.status(200).json({ success: true, data });
     } catch (error: any) {
       next(new ErrorHandler(error.message, 400));
     }
@@ -32,17 +31,9 @@ export const getCoupons = catchAsyncError(
 export const createCoupon = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { code, discountType, discountValue } = req.body;
-      const product = await Product.findById(req.params.productId);
+      await couponServices.createCoupon(req.body, req.params.productId);
 
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-
-      product?.coupons.push({ code, discountType, discountValue });
-      await product.save();
-
-      res.status(204).json({ success: true, message: "Created successfully" });
+      res.status(200).json({ success: true, message: "Created successfully" });
     } catch (error: any) {
       next(new ErrorHandler(error.message, 400));
     }
@@ -52,29 +43,12 @@ export const createCoupon = catchAsyncError(
 export const updateCoupon = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { discountType, discountValue } = req.body;
-      const product = await Product.findById(req.params.productId);
-
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-
-      const coupon = product.coupons.find(
-        (coupon) => coupon._id?.toString() === req.params.couponId
+      await couponServices.updateCoupon(
+        req.body,
+        req.params.productId,
+        req.params.couponId
       );
-
-      if (!coupon) {
-        return res.status(404).json({ error: "Coupon not found" });
-      }
-
-      coupon.discountType = discountType ? discountType : coupon.discountType;
-      coupon.discountValue = discountValue
-        ? discountValue
-        : coupon.discountValue;
-
-      await product.save();
-
-      res.status(204).json({ success: true, data: coupon });
+      res.status(200).json({ success: true, message: "Updated successfully" });
     } catch (error: any) {
       next(new ErrorHandler(error.message, 400));
     }
@@ -84,18 +58,10 @@ export const updateCoupon = catchAsyncError(
 export const deleteCoupon = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const product = await Product.findById(req.params.productId);
-
-      if (!product) {
-        return res.status(404).json({ error: "Product not found" });
-      }
-
-      const coupons = product.coupons.filter(
-        (coupon) => coupon._id?.toString() !== req.params.couponId
+      await couponServices.deleteCoupon(
+        req.params.productId,
+        req.params.couponId
       );
-
-      product.coupons = coupons;
-      await product.save();
 
       res.status(201).json({ success: true, message: "Deleted successfully" });
     } catch (error: any) {

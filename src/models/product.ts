@@ -1,7 +1,7 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 require("dotenv").config();
 
-interface ICoupons {
+export interface ICoupon {
   _id?: string;
   code: string;
   discountType: string;
@@ -12,7 +12,7 @@ export interface IProduct extends Document {
   name: string;
   price: number;
   description?: string;
-  coupons: Array<ICoupons>;
+  coupons: Array<ICoupon>;
 }
 
 interface ProductModel extends Model<IProduct> {
@@ -23,12 +23,12 @@ const productSchema: Schema<IProduct, ProductModel> = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please enter name of product"],
+      required: true,
     },
     price: {
       type: Number,
       min: 1,
-      required: [true, "Please enter a valid price"],
+      required: true,
     },
     description: String,
     coupons: [
@@ -59,7 +59,6 @@ productSchema.static(
   async function (ids: string[]): Promise<string[]> {
     const invalidProductIds: string[] = [];
 
-    console.log({ ids });
     for (const id of ids) {
       try {
         await this.findById(id);

@@ -11,12 +11,12 @@ const productsCollectionSchema: Schema<ICollection> = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please enter name of product"],
+      required: true,
     },
     price: {
       type: Number,
-      min: [1, "Please enter a valid price"],
-      required: [true, "Please enter a valid price"],
+      min: 1,
+      required: true,
     },
     products: {
       type: [String],
